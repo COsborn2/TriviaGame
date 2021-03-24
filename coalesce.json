@@ -1,0 +1,16 @@
+{
+  "webProject": {
+    "projectFile": "./TriviaGame.Web/TriviaGame.Web.csproj"
+  },
+  "dataProject": {
+    "projectFile": "./TriviaGame.Data/TriviaGame.Data.csproj"
+  },
+
+  "rootGenerator": "Vue",
+
+  "generatorConfig": {
+    "Scripts": {
+      "targetDirectory": "../src"
+    }
+  }
+}
