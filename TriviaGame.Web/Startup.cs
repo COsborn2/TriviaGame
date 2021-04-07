@@ -15,6 +15,7 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Text.RegularExpressions;
 using TriviaGame.Data.Services.Impl;
+using TriviaGame.Data.Services.Interfaces;
 
 namespace TriviaGame.Web
 {

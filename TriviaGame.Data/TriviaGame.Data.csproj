@@ -12,8 +12,4 @@
     <PackageReference Include="IntelliTect.Coalesce" Version="$(CoalesceVersion)" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Services\Interfaces" />
-  </ItemGroup>
-
 </Project>

@@ -1,18 +1,11 @@
 using System;
 using System.Linq;
-using IntelliTect.Coalesce;
 using Microsoft.EntityFrameworkCore;
 using TriviaGame.Data.Models;
+using TriviaGame.Data.Services.Interfaces;
 
 namespace TriviaGame.Data.Services.Impl
 {
-    [Coalesce, Service]
-    public interface ITriviaService
-    {
-        TriviaBoard GetRandomTriviaBoard();
-        TriviaBoard GetRandomTriviaBoardWithNoAnswers();
-    }
-    
     public class TriviaService : ITriviaService
     {
         private readonly AppDbContext _context;

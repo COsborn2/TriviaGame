@@ -16,6 +16,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using TriviaGame.Data.Services.Interfaces;
 using TriviaGame.Web.Models;
 
 namespace TriviaGame.Web.Api
@@ -24,9 +25,9 @@ namespace TriviaGame.Web.Api
     [ServiceFilter(typeof(IApiActionFilter))]
     public partial class TriviaServiceController : Controller
     {
-        protected TriviaGame.Data.Services.Impl.ITriviaService Service { get; }
+        protected ITriviaService Service { get; }
 
-        public TriviaServiceController(TriviaGame.Data.Services.Impl.ITriviaService service)
+        public TriviaServiceController(ITriviaService service)
         {
             Service = service;
         }
