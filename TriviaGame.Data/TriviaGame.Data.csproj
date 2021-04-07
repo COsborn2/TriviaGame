@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +10,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.2.*" />
     <PackageReference Include="IntelliTect.Coalesce" Version="$(CoalesceVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\Interfaces" />
   </ItemGroup>
 
 </Project>

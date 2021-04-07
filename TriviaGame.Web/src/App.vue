@@ -1,32 +1,25 @@
 <template>
   <v-app id="vue-app">
-    <v-navigation-drawer v-model="drawer" app clipped>
-      <v-list dense>
-        <v-list-item link to="/">
-          <v-list-item-action>
-            <v-icon>fas fa-home</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>Home</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+<!--    <v-navigation-drawer v-model="drawer" app clipped>-->
+<!--      <v-list dense>-->
 
-        <v-list-item link to="/coalesce-example">
-          <v-list-item-action>
-            <v-icon>fas fa-palette</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>Coalesce Example</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
+<!--        <v-list-item link to="/">-->
+<!--          <v-list-item-action>-->
+<!--            <v-icon>fas fa-home</v-icon>-->
+<!--          </v-list-item-action>-->
+<!--          <v-list-item-content>-->
+<!--            <v-list-item-title>Home</v-list-item-title>-->
+<!--          </v-list-item-content>-->
+<!--        </v-list-item>-->
+
+<!--      </v-list>-->
+<!--    </v-navigation-drawer>-->
 
     <v-app-bar app color="primary" dark clipped-left>
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+<!--      <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>-->
       <v-toolbar-title>
         <router-link to="/" class="white--text" style="text-decoration: none">
-          Coalesce Vue Demo
+          Trivia Game
         </router-link>
       </v-toolbar-title>
     </v-app-bar>

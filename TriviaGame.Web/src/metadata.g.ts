@@ -6,26 +6,47 @@ import {
 
 
 const domain: Domain = { enums: {}, types: {}, services: {} }
-export const ApplicationUser = domain.types.ApplicationUser = {
-  name: "ApplicationUser",
-  displayName: "Application User",
-  get displayProp() { return this.props.name }, 
+export const TriviaBoard = domain.types.TriviaBoard = {
+  name: "TriviaBoard",
+  displayName: "Trivia Board",
+  get displayProp() { return this.props.triviaBoardId }, 
   type: "model",
-  controllerRoute: "ApplicationUser",
-  get keyProp() { return this.props.applicationUserId }, 
-  behaviorFlags: 7,
+  controllerRoute: "TriviaBoard",
+  get keyProp() { return this.props.triviaBoardId }, 
+  behaviorFlags: 0,
   props: {
-    applicationUserId: {
-      name: "applicationUserId",
-      displayName: "Application User Id",
+    triviaBoardId: {
+      name: "triviaBoardId",
+      displayName: "Trivia Board Id",
       type: "number",
       role: "primaryKey",
+      hidden: 3,
     },
-    name: {
-      name: "name",
-      displayName: "Name",
+    question: {
+      name: "question",
+      displayName: "Question",
       type: "string",
       role: "value",
+    },
+    totalPoints: {
+      name: "totalPoints",
+      displayName: "Total Points",
+      type: "number",
+      role: "value",
+    },
+    answers: {
+      name: "answers",
+      displayName: "Answers",
+      type: "collection",
+      itemType: {
+        name: "$collectionItem",
+        displayName: "",
+        role: "value",
+        type: "object",
+        get typeDef() { return (domain.types.TriviaAnswer as ObjectType) },
+      },
+      role: "value",
+      dontSerialize: true,
     },
   },
   methods: {
@@ -33,14 +54,93 @@ export const ApplicationUser = domain.types.ApplicationUser = {
   dataSources: {
   },
 }
+export const TriviaAnswer = domain.types.TriviaAnswer = {
+  name: "TriviaAnswer",
+  displayName: "Trivia Answer",
+  type: "object",
+  props: {
+    triviaAnswerId: {
+      name: "triviaAnswerId",
+      displayName: "Trivia Answer Id",
+      type: "number",
+      role: "value",
+    },
+    answer: {
+      name: "answer",
+      displayName: "Answer",
+      type: "string",
+      role: "value",
+    },
+    points: {
+      name: "points",
+      displayName: "Points",
+      type: "number",
+      role: "value",
+    },
+    triviaBoard: {
+      name: "triviaBoard",
+      displayName: "Trivia Board",
+      type: "model",
+      get typeDef() { return (domain.types.TriviaBoard as ModelType) },
+      role: "value",
+      dontSerialize: true,
+    },
+    position: {
+      name: "position",
+      displayName: "Position",
+      type: "number",
+      role: "value",
+    },
+  },
+}
+export const TriviaService = domain.services.TriviaService = {
+  name: "TriviaService",
+  displayName: "Trivia Service",
+  type: "service",
+  controllerRoute: "TriviaService",
+  methods: {
+    getRandomTriviaBoard: {
+      name: "getRandomTriviaBoard",
+      displayName: "Get Random Trivia Board",
+      transportType: "item",
+      httpMethod: "POST",
+      params: {
+      },
+      return: {
+        name: "$return",
+        displayName: "Result",
+        type: "model",
+        get typeDef() { return (domain.types.TriviaBoard as ModelType) },
+        role: "value",
+      },
+    },
+    getRandomTriviaBoardWithNoAnswers: {
+      name: "getRandomTriviaBoardWithNoAnswers",
+      displayName: "Get Random Trivia Board With No Answers",
+      transportType: "item",
+      httpMethod: "POST",
+      params: {
+      },
+      return: {
+        name: "$return",
+        displayName: "Result",
+        type: "model",
+        get typeDef() { return (domain.types.TriviaBoard as ModelType) },
+        role: "value",
+      },
+    },
+  },
+}
 
 interface AppDomain extends Domain {
   enums: {
   }
   types: {
-    ApplicationUser: typeof ApplicationUser
+    TriviaAnswer: typeof TriviaAnswer
+    TriviaBoard: typeof TriviaBoard
   }
   services: {
+    TriviaService: typeof TriviaService
   }
 }
 

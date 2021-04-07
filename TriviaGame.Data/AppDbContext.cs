@@ -1,24 +1,21 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using TriviaGame.Data.Models;
 using IntelliTect.Coalesce;
+using TriviaGame.Data.Models;
 
 namespace TriviaGame.Data
 {
     [Coalesce]
     public class AppDbContext : DbContext
     {
-        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
-
+        public DbSet<TriviaBoard> TriviaBoards { get; set; }
+        
         public AppDbContext()
         {
         }
 
-        public AppDbContext(DbContextOptions options) : base(options)
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
 
@@ -40,10 +37,7 @@ namespace TriviaGame.Data
         {
             try
             {
-                this.Database.Migrate();
-                
-                // TODO: Or, use Database.EnsureCreated() instead:
-                // this.Database.EnsureCreated();
+                Database.Migrate();
             }
             catch (InvalidOperationException e) when (e.Message == "No service for type 'Microsoft.EntityFrameworkCore.Migrations.IMigrator' has been registered.")
             {

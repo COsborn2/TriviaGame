@@ -35,6 +35,7 @@ namespace TriviaGame.Web.Controllers
         public IActionResult Error()
         {
             ViewData["RequestId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+            // ReSharper disable once Mvc.ViewNotResolved
             return View();
         }
     }
