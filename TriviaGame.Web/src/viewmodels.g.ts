@@ -49,6 +49,17 @@ export class TriviaServiceViewModel extends ServiceViewModel<typeof $metadata.Tr
     return getRandomTriviaBoardWithNoAnswers
   }
   
+  public get getTriviaBoardOfId() {
+    const getTriviaBoardOfId = this.$apiClient.$makeCaller(
+      this.$metadata.methods.getTriviaBoardOfId,
+      (c, id: number | null) => c.getTriviaBoardOfId(id),
+      () => ({id: null as number | null, }),
+      (c, args) => c.getTriviaBoardOfId(args.id))
+    
+    Object.defineProperty(this, 'getTriviaBoardOfId', {value: getTriviaBoardOfId});
+    return getTriviaBoardOfId
+  }
+  
   constructor() {
     super($metadata.TriviaService, new $apiClients.TriviaServiceApiClient())
   }

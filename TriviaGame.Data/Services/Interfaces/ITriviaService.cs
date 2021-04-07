@@ -7,6 +7,7 @@ namespace TriviaGame.Data.Services.Interfaces
     public interface ITriviaService
     {
         TriviaBoard GetRandomTriviaBoard();
-        TriviaBoard GetRandomTriviaBoardWithNoAnswers();
+        (TriviaBoard board, int totalAnswers) GetRandomTriviaBoardWithNoAnswers();
+        TriviaBoard GetTriviaBoardOfId(int id);
     }
 }

@@ -30,6 +30,24 @@
         max-width="800"
         tile
         v-if="this.isInGame">
+        <v-row>
+          <v-col align-self="center" align="center">
+            <v-btn @click="this.hostButton" v-if="!hostPresent || isCurrentHost" color="red">{{ hostPresent ? 'Click to leave as host' : 'Click here to host' }}</v-btn>
+            <h1 align="center">{{ !hostPresent ? 'No Host' : currentGameSession.hostId }}</h1>
+          </v-col>
+        </v-row>
+      </v-card>
+    </template>
+    
+    <template>
+      <v-card
+        class="mx-auto mt-5"
+        min-width="800"
+        max-width="800"
+        tile
+        v-if="this.isInGame">
+        <h1 align="center">{{ currentGameSession.triviaBoard.totalPoints }}</h1>
+        <!-- TODO: Split this into two side-by-side tables - bug with 4 answers going to and from host -->
         <v-simple-table class="disable-hover-white">
           <thead>
           <tr>
@@ -99,7 +117,6 @@ import {Component, Vue} from "vue-property-decorator";
 import {HubConnection, HubConnectionBuilder} from "@microsoft/signalr";
 import {GameSessionInfo} from "@/GameSessionInfo";
 import {TriviaAnswer} from "@/models.g";
-import {TriviaBoardViewModel} from "@/viewmodels.g";
 
 interface BoardRow {
   leftSide: TriviaAnswer | null;
@@ -112,6 +129,14 @@ export default class Home extends Vue {
   public messages: string[] = [];
   public userInput: string = "";
   public currentGameSession!: GameSessionInfo;
+  
+  public get isCurrentHost(): boolean {
+    return this.currentGameSession.hostId === this.connection.connectionId;
+  }
+  
+  public get hostPresent(): boolean {
+    return !!this.currentGameSession.hostId && this.currentGameSession.hostId !== '';
+  }
   
   public get triviaAnswers(): TriviaAnswer[] | null {
     return this.currentGameSession.triviaBoard.answers;
@@ -169,7 +194,18 @@ export default class Home extends Vue {
       .withUrl('/gameboardhub')
       .build();
     
-    this.currentGameSession = {gameId: null, triviaBoard: new TriviaBoardViewModel(), playerIds: [], totalAnswers: 0}
+    this.currentGameSession = new GameSessionInfo();
+  }
+  
+  public async hostButton() {
+    if (this.isCurrentHost) {
+      // leaving as host
+      await this.connection.invoke('LeaveHost')
+      this.currentGameSession.triviaBoard.answers = [];
+    } else {
+      // joining as host
+      await this.connection.invoke('HostGame')
+    }
   }
   
   public async createGame() {
@@ -198,7 +234,21 @@ export default class Home extends Vue {
     
     this.connection.on('ReceiveGameInformation', (sessionInfo: GameSessionInfo) => {
       this.currentGameSession = sessionInfo;
-      console.log(this.currentGameSession.totalAnswers)
+    })
+    
+    this.connection.on('HostChanged', (hostId: string) => {
+      this.currentGameSession.hostId = hostId;
+    })
+    
+    this.connection.on('TriviaAnswersRevealed', (triviaAnswers: TriviaAnswer[]) => {
+      for (let i = 0; i < triviaAnswers.length; i++) {
+        let cur: TriviaAnswer = triviaAnswers[i];
+        if (!cur) continue;
+        let indexOf = this.currentGameSession.triviaBoard.answers?.indexOf(cur) ?? 0;
+        if (indexOf < 0) {
+          this.currentGameSession.triviaBoard.answers?.push(cur);
+        }
+      }
     })
     
     this.connection.start()

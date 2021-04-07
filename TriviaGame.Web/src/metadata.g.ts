@@ -124,6 +124,27 @@ export const TriviaService = domain.services.TriviaService = {
       return: {
         name: "$return",
         displayName: "Result",
+        // Type not supported natively by Coalesce - falling back to string.
+        type: "string",
+        role: "value",
+      },
+    },
+    getTriviaBoardOfId: {
+      name: "getTriviaBoardOfId",
+      displayName: "Get Trivia Board Of Id",
+      transportType: "item",
+      httpMethod: "POST",
+      params: {
+        id: {
+          name: "id",
+          displayName: "Id",
+          type: "number",
+          role: "value",
+        },
+      },
+      return: {
+        name: "$return",
+        displayName: "Result",
         type: "model",
         get typeDef() { return (domain.types.TriviaBoard as ModelType) },
         role: "value",

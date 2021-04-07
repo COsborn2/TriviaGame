@@ -18,9 +18,17 @@ export class TriviaServiceApiClient extends ServiceApiClient<typeof $metadata.Tr
     return this.$invoke($method, $params, $config)
   }
   
-  public getRandomTriviaBoardWithNoAnswers($config?: AxiosRequestConfig): AxiosPromise<ItemResult<$models.TriviaBoard>> {
+  public getRandomTriviaBoardWithNoAnswers($config?: AxiosRequestConfig): AxiosPromise<ItemResult<any>> {
     const $method = this.$metadata.methods.getRandomTriviaBoardWithNoAnswers
     const $params =  {
+    }
+    return this.$invoke($method, $params, $config)
+  }
+  
+  public getTriviaBoardOfId(id: number | null, $config?: AxiosRequestConfig): AxiosPromise<ItemResult<$models.TriviaBoard>> {
+    const $method = this.$metadata.methods.getTriviaBoardOfId
+    const $params =  {
+      id,
     }
     return this.$invoke($method, $params, $config)
   }
