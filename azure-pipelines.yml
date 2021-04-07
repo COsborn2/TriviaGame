@@ -21,6 +21,7 @@ steps:
     command: 'restore'
     projects: '**/*.csproj'
     feedsToUse: 'config'
+    nugetConfigPath: 'NuGet.Config'
 
 - task: Npm@1
   displayName: 'npm ci'
