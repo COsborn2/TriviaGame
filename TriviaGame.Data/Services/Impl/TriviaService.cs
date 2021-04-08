@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TriviaGame.Data.Models;
@@ -15,9 +16,8 @@ namespace TriviaGame.Data.Services.Impl
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public TriviaBoard GetRandomTriviaBoard()
+        private TriviaBoard GetBoardWithAnswers(int id)
         {
-            var id = _context.TriviaBoards.GetRandomTriviaBoardId();
             var gameBoard = _context.TriviaBoards
                 .Include(x => x.Answers)
                 .First(x => x.TriviaBoardId == id);
@@ -32,12 +32,28 @@ namespace TriviaGame.Data.Services.Impl
             return gameBoard;
         }
 
-        public TriviaBoard GetRandomTriviaBoardWithNoAnswers()
+        public TriviaBoard GetRandomTriviaBoard()
         {
             var id = _context.TriviaBoards.GetRandomTriviaBoardId();
-            return _context.TriviaBoards
+            
+            return GetBoardWithAnswers(id);
+        }
+
+        public (TriviaBoard board, int totalAnswers) GetRandomTriviaBoardWithNoAnswers()
+        {
+            var id = _context.TriviaBoards.GetRandomTriviaBoardId();
+            var board = _context.TriviaBoards
                 .Include(x => x.Answers)
                 .First(x => x.TriviaBoardId == id);
+            var answerCount = board.Answers.Count;
+            board.Answers = new List<TriviaAnswer>();
+
+            return (board, answerCount);
+        }
+
+        public TriviaBoard GetTriviaBoardOfId(int id)
+        {
+            return GetBoardWithAnswers(id);
         }
     }
 }

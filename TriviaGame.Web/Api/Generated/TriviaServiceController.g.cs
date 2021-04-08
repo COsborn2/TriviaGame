@@ -16,7 +16,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using TriviaGame.Data.Services.Interfaces;
 using TriviaGame.Web.Models;
 
 namespace TriviaGame.Web.Api
@@ -25,9 +24,9 @@ namespace TriviaGame.Web.Api
     [ServiceFilter(typeof(IApiActionFilter))]
     public partial class TriviaServiceController : Controller
     {
-        protected ITriviaService Service { get; }
+        protected TriviaGame.Data.Services.Interfaces.ITriviaService Service { get; }
 
-        public TriviaServiceController(ITriviaService service)
+        public TriviaServiceController(TriviaGame.Data.Services.Interfaces.ITriviaService service)
         {
             Service = service;
         }
@@ -52,10 +51,23 @@ namespace TriviaGame.Web.Api
         /// </summary>
         [HttpPost("GetRandomTriviaBoardWithNoAnswers")]
         [Authorize]
-        public virtual ItemResult<TriviaBoardDtoGen> GetRandomTriviaBoardWithNoAnswers()
+        public virtual ItemResult<(TriviaGame.Data.Models.TriviaBoard board, int totalAnswers)> GetRandomTriviaBoardWithNoAnswers()
+        {
+            var methodResult = Service.GetRandomTriviaBoardWithNoAnswers();
+            var result = new ItemResult<(TriviaGame.Data.Models.TriviaBoard board, int totalAnswers)>();
+            result.Object = methodResult;
+            return result;
+        }
+
+        /// <summary>
+        /// Method: GetTriviaBoardOfId
+        /// </summary>
+        [HttpPost("GetTriviaBoardOfId")]
+        [Authorize]
+        public virtual ItemResult<TriviaBoardDtoGen> GetTriviaBoardOfId(int id)
         {
             IncludeTree includeTree = null;
-            var methodResult = Service.GetRandomTriviaBoardWithNoAnswers();
+            var methodResult = Service.GetTriviaBoardOfId(id);
             var result = new ItemResult<TriviaBoardDtoGen>();
             var mappingContext = new MappingContext(User, "");
             result.Object = Mapper.MapToDto<TriviaGame.Data.Models.TriviaBoard, TriviaBoardDtoGen>(methodResult, mappingContext, includeTree);

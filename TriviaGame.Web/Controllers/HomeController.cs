@@ -17,9 +17,7 @@ namespace TriviaGame.Web.Controllers
         // Prevent caching of this route.
         // The served file will contain the links to compiled js/css that include hashes in the filenames.
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
-        public async Task<IActionResult> Index(
-            [FromServices] IWebHostEnvironment hostingEnvironment
-        )
+        public IActionResult Index([FromServices] IWebHostEnvironment hostingEnvironment)
         {
             var fileInfo = hostingEnvironment.WebRootFileProvider.GetFileInfo("index.html");
 

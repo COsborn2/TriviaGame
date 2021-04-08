@@ -32,5 +32,7 @@ namespace TriviaGame.Data.Services.Impl
             get => TriviaBoard.Answers.Any() ? TriviaBoard.Answers.Count : _totalAnswers;
             set => _totalAnswers = value;
         }
+
+        public string HostId { get; set; }
     }
 }

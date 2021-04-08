@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		coalesce.json = coalesce.json
 		Directory.Build.props = Directory.Build.props
 		NuGet.Config = NuGet.Config
-		tsconfig.json = tsconfig.json
+		TriviaGame.Web\tsconfig.json = TriviaGame.Web\tsconfig.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriviaQuestionsParser", "TriviaQuestionsParser\TriviaQuestionsParser.csproj", "{4FCA9322-F539-45E8-9A6F-FE931DD3CB6D}"

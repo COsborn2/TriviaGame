@@ -30,40 +30,28 @@
         max-width="800"
         tile
         v-if="this.isInGame">
-        <v-simple-table class="disable-hover-white">
-          <thead>
-          <tr>
-            <th colspan="4">
-              <h1 align="center">{{ currentGameSession.triviaBoard.question }}</h1>
-            </th>
-          </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, index) in this.boardRows" :key="'table' + index">
-              <!-- Left Side -->
-              <template v-if="item.leftSide">
-                <td style="border-right: solid 1px; width: 25%">{{ item.leftSide.answer }}</td>
-                <td class="text-center" style="border-right: solid 5px; width: 10%">{{ item.leftSide.points }}</td>
-              </template>
-              <template v-else>
-                <td align="center" colspan="2" style="border-right: solid 5px; width: 35%; background-color: cornflowerblue">
-                  <v-chip v-if="index < currentGameSession.totalAnswers">{{ index + 1 }}</v-chip>
-                </td>
-              </template>
-              
-              <!-- Right Side -->
-              <template v-if="item.rightSide">
-                <td style="border-right: solid 1px; width: 25%">{{ item.rightSide.answer }}</td>
-                <td class="text-center" style="width: 10%">{{ item.rightSide.points }}</td>
-              </template>
-              <template v-else>
-                <td align="center" colspan="2" style="width: 35%; background-color: cornflowerblue">
-                  <v-chip v-if="index + 4 < currentGameSession.totalAnswers">{{ index + 1 + 4 }}</v-chip>
-                </td>
-              </template>
-            </tr>
-          </tbody>
-        </v-simple-table>
+        <v-row>
+          <v-col align-self="center" align="center">
+            <v-btn @click="this.hostButton" v-if="!hostPresent || isCurrentHost" color="red">
+              {{ hostPresent ? 'Click to leave as host' : 'Click here to host' }}
+            </v-btn>
+            <h1 align="center">{{ !hostPresent ? 'No Host' : currentGameSession.hostId }}</h1>
+          </v-col>
+        </v-row>
+      </v-card>
+    </template>
+    
+    <template>
+      <v-card
+        class="mx-auto mt-5"
+        min-width="800"
+        max-width="800"
+        tile
+        v-if="this.isInGame">
+        <h1 align="center" style="font-size: xxx-large">{{ pointsOnBoard }}</h1>
+        <h2 align="center">{{ currentGameSession.triviaBoard.question }}</h2>
+        
+        <game-board :total-answers-in-board="currentGameSession.totalAnswers" :trivia-answers="triviaAnswers" />
       </v-card>
     </template>
 
@@ -99,63 +87,34 @@ import {Component, Vue} from "vue-property-decorator";
 import {HubConnection, HubConnectionBuilder} from "@microsoft/signalr";
 import {GameSessionInfo} from "@/GameSessionInfo";
 import {TriviaAnswer} from "@/models.g";
-import {TriviaBoardViewModel} from "@/viewmodels.g";
+import GameBoard from "@/components/GameBoard.vue";
 
-interface BoardRow {
-  leftSide: TriviaAnswer | null;
-  rightSide: TriviaAnswer | null;
-}
-
-@Component({})
+@Component({
+  components: {
+    GameBoard
+  }
+})
 export default class Home extends Vue {
   public connection: HubConnection;
   public messages: string[] = [];
   public userInput: string = "";
   public currentGameSession!: GameSessionInfo;
+
+  public get pointsOnBoard(): number {
+    if (!this.triviaAnswers || this.triviaAnswers.length < 1) return 0;
+    return this.triviaAnswers.map(value => value.points).reduce((a, b) => (a ?? 0) + (b ?? 0)) ?? 0;
+  }
+  
+  public get isCurrentHost(): boolean {
+    return this.currentGameSession.hostId === this.connection.connectionId;
+  }
+  
+  public get hostPresent(): boolean {
+    return !!this.currentGameSession.hostId && this.currentGameSession.hostId !== '';
+  }
   
   public get triviaAnswers(): TriviaAnswer[] | null {
     return this.currentGameSession.triviaBoard.answers;
-  }
-  
-  public get boardRows(): BoardRow[] {
-    let boardRows: BoardRow[] = [];
-    
-    if (!this.triviaAnswers) return boardRows;
-
-    let sortedRows: TriviaAnswer[] = this.triviaAnswers ?? [];
-    // These should already be sorted but I'll leave this in just in case JSON messes with the order
-    sortedRows.sort((a, b) => {
-      let left: number = a?.position ?? 0;
-      let right: number = b?.position ?? 0;
-      return left - right;
-    })
-    
-    let interpolatedAnswers: (TriviaAnswer | null) [] = [];
-    for (let i = 0, index = 0; i < this.currentGameSession.totalAnswers; i++) {
-      if (index > sortedRows.length - 1) { // out of bounds
-        interpolatedAnswers.push(null)
-        continue;
-      }
-      
-      let cur: TriviaAnswer = sortedRows[index];
-      
-      if (cur && cur?.position === i) {
-        interpolatedAnswers.push(cur);
-        index++;
-        continue;
-      }
-      
-      interpolatedAnswers.push(null)
-    }
-    
-    for (let i = 0, j = 4; i < 4; i++, j++) {
-      let leftSide: TriviaAnswer | null = interpolatedAnswers[i];
-      let rightSide: TriviaAnswer | null = interpolatedAnswers[j];
-
-      boardRows.push({leftSide: leftSide, rightSide: rightSide});
-    }
-     
-    return boardRows;
   }
   
   public get isInGame() {
@@ -169,7 +128,18 @@ export default class Home extends Vue {
       .withUrl('/gameboardhub')
       .build();
     
-    this.currentGameSession = {gameId: null, triviaBoard: new TriviaBoardViewModel(), playerIds: [], totalAnswers: 0}
+    this.currentGameSession = new GameSessionInfo();
+  }
+  
+  public async hostButton() {
+    if (this.isCurrentHost) {
+      // leaving as host
+      await this.connection.invoke('LeaveHost')
+      this.currentGameSession.triviaBoard.answers = [];
+    } else {
+      // joining as host
+      await this.connection.invoke('HostGame')
+    }
   }
   
   public async createGame() {
@@ -198,7 +168,21 @@ export default class Home extends Vue {
     
     this.connection.on('ReceiveGameInformation', (sessionInfo: GameSessionInfo) => {
       this.currentGameSession = sessionInfo;
-      console.log(this.currentGameSession.totalAnswers)
+    })
+    
+    this.connection.on('HostChanged', (hostId: string) => {
+      this.currentGameSession.hostId = hostId;
+    })
+    
+    this.connection.on('TriviaAnswersRevealed', (triviaAnswers: TriviaAnswer[]) => {
+      for (let i = 0; i < triviaAnswers.length; i++) {
+        let cur: TriviaAnswer = triviaAnswers[i];
+        if (!cur) continue;
+        let indexOf = this.currentGameSession.triviaBoard.answers?.indexOf(cur) ?? 0;
+        if (indexOf < 0) {
+          this.currentGameSession.triviaBoard.answers?.push(cur);
+        }
+      }
     })
     
     this.connection.start()

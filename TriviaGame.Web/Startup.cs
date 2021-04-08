@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using TriviaGame.Data.Services.Impl;
 using TriviaGame.Data.Services.Interfaces;
 
@@ -117,7 +118,7 @@ namespace TriviaGame.Web
                 endpoints.MapControllers();
 
                 // API fallback to prevent serving SPA fallback to 404 hits on API endpoints.
-                endpoints.Map("api/{**any}", async ctx => ctx.Response.StatusCode = StatusCodes.Status404NotFound);
+                endpoints.Map("api/{**any}", ctx => Task.FromResult(ctx.Response.StatusCode = StatusCodes.Status404NotFound));
 
                 endpoints.MapFallbackToController("Index", "Home");
 

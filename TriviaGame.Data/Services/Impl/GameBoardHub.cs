@@ -32,7 +32,9 @@ namespace TriviaGame.Data.Services.Impl
             // This is a new game
             if (!SessionInfo.TryGetValue(gameId, out _))
             {
-                gameSessionInfo.TriviaBoard = _triviaService.GetRandomTriviaBoard();
+                var (board, totalAnswers) = _triviaService.GetRandomTriviaBoardWithNoAnswers();
+                gameSessionInfo.TriviaBoard = board;
+                gameSessionInfo.TotalAnswers = totalAnswers;
             }
             
             await Groups.AddToGroupAsync(connId, gameId, CancellationToken.None);
@@ -81,6 +83,17 @@ namespace TriviaGame.Data.Services.Impl
             return curSessionInfo;
         }
 
+        private bool TryGetCurrentGameInfo(out GameSessionInfo gameSessionInfo)
+        {
+            gameSessionInfo = null;
+            return TryGetCurrentGameId(out var gameId) && SessionInfo.TryGetValue(gameId, out gameSessionInfo);
+        }
+
+        private bool TryGetCurrentGameId(out string gameId)
+        {
+            return ConnectionIdMapping.TryGetValue(Context.ConnectionId, out gameId);
+        }
+
         public async Task CreateGame()
         {
             var gameSessionInfo = await CreateOrAddToGameGroup(Guid.NewGuid().ToString());
@@ -95,14 +108,48 @@ namespace TriviaGame.Data.Services.Impl
             await Clients.Caller.ReceiveGameInformation(gameSessionInfo);
         }
 
-        public async Task LeaveGame()
+        public async Task<GameSessionInfo> LeaveGame()
         {
-            await RemoveUserFromGroup();
+            await LeaveHost();
+
+            return await RemoveUserFromGroup();
+        }
+
+        public async Task LeaveHost()
+        {
+            if (!TryGetCurrentGameId(out var gameId)) return;
+            if (!TryGetCurrentGameInfo(out var gameSessionInfo)) return;
+            
+            // Only continue if current player is host
+            if (gameSessionInfo.HostId != Context.ConnectionId) return;
+
+            gameSessionInfo.HostId = null;
+            SessionInfo.TryUpdate(gameId, gameSessionInfo, gameSessionInfo);
+
+            await Clients.Group(gameId).HostChanged(string.Empty);
+        }
+
+        public async Task HostGame()
+        {
+            if (!TryGetCurrentGameId(out var gameId)) return;
+            if (!TryGetCurrentGameInfo(out var gameSessionInfo)) return;
+
+            if (!string.IsNullOrWhiteSpace(gameSessionInfo.HostId)) return;
+            
+            gameSessionInfo.HostId = Context.ConnectionId;
+            SessionInfo.TryUpdate(gameId, gameSessionInfo, gameSessionInfo);
+
+            await Clients.Group(gameId).HostChanged(Context.ConnectionId);
+
+            var answers = _triviaService
+                .GetTriviaBoardOfId(gameSessionInfo.TriviaBoard.TriviaBoardId)
+                .Answers;
+            await Clients.Caller.TriviaAnswersRevealed(answers);
         }
         
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var sessionInfo = await RemoveUserFromGroup();
+            var sessionInfo = await LeaveGame();
 
             if (sessionInfo is not null)
             {
