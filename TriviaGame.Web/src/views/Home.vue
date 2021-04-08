@@ -50,44 +50,8 @@
         v-if="this.isInGame">
         <h1 align="center" style="font-size: xxx-large">{{ pointsOnBoard }}</h1>
         <h2 align="center">{{ currentGameSession.triviaBoard.question }}</h2>
-        <v-row>
-          <v-col cols="6" class="pr-0">
-            <v-simple-table>
-              <tbody>
-              <tr v-for="(item, index) in interpolatedTriviaAnswers.slice(0, 4)" :key="'leftTable' + index">
-                <!-- Left Side -->
-                <template v-if="item">
-                  <td style="border-right: solid 1px">{{ item.answer }}</td>
-                  <td class="text-center" style="border-right: solid 3px; width: 10%">{{ item.points }}</td>
-                </template>
-                <template v-else>
-                  <td align="center" colspan="2" style="border-right: solid 3px;background-color: cornflowerblue">
-                    <v-chip v-if="index < currentGameSession.totalAnswers">{{ index + 1 }}</v-chip>
-                  </td>
-                </template>
-              </tr>
-              </tbody>
-            </v-simple-table>
-          </v-col>
-          <v-col cols="6" class="pl-0">
-            <v-simple-table>
-              <tbody>
-              <tr v-for="(item, index) in interpolatedTriviaAnswers.slice(4, 8)" :key="'leftTable' + index">
-                <!-- Left Side -->
-                <template v-if="item">
-                  <td style="border-left: solid 3px; border-right: solid 1px">{{ item.answer }}</td>
-                  <td class="text-center" style="width: 10%">{{ item.points }}</td>
-                </template>
-                <template v-else>
-                  <td align="center" colspan="2" style="border-left: solid 3px;background-color: cornflowerblue">
-                    <v-chip v-if="index + 4 < currentGameSession.totalAnswers">{{ index + 4 + 1 }}</v-chip>
-                  </td>
-                </template>
-              </tr>
-              </tbody>
-            </v-simple-table>
-          </v-col>
-        </v-row>
+        
+        <game-board :total-answers-in-board="currentGameSession.totalAnswers" :trivia-answers="triviaAnswers" />
       </v-card>
     </template>
 
@@ -123,19 +87,19 @@ import {Component, Vue} from "vue-property-decorator";
 import {HubConnection, HubConnectionBuilder} from "@microsoft/signalr";
 import {GameSessionInfo} from "@/GameSessionInfo";
 import {TriviaAnswer} from "@/models.g";
+import GameBoard from "@/components/GameBoard.vue";
 
-interface BoardRow {
-  leftSide: TriviaAnswer | null;
-  rightSide: TriviaAnswer | null;
-}
-
-@Component({})
+@Component({
+  components: {
+    GameBoard
+  }
+})
 export default class Home extends Vue {
   public connection: HubConnection;
   public messages: string[] = [];
   public userInput: string = "";
   public currentGameSession!: GameSessionInfo;
-  
+
   public get pointsOnBoard(): number {
     if (!this.triviaAnswers || this.triviaAnswers.length < 1) return 0;
     return this.triviaAnswers.map(value => value.points).reduce((a, b) => (a ?? 0) + (b ?? 0)) ?? 0;
@@ -151,36 +115,6 @@ export default class Home extends Vue {
   
   public get triviaAnswers(): TriviaAnswer[] | null {
     return this.currentGameSession.triviaBoard.answers;
-  }
-  
-  public get interpolatedTriviaAnswers(): (TriviaAnswer | null)[] {
-    let sortedRows: TriviaAnswer[] = this.triviaAnswers ?? [];
-    // These should already be sorted but I'll leave this in just in case JSON messes with the order
-    sortedRows.sort((a, b) => {
-      let left: number = a?.position ?? 0;
-      let right: number = b?.position ?? 0;
-      return left - right;
-    })
-
-    let interpolatedAnswers: (TriviaAnswer | null) [] = [];
-    for (let i = 0, index = 0; i < 8; i++) {
-      if (index > sortedRows.length - 1) { // out of bounds
-        interpolatedAnswers.push(null)
-        continue;
-      }
-
-      let cur: TriviaAnswer = sortedRows[index];
-
-      if (cur && cur?.position === i) {
-        interpolatedAnswers.push(cur);
-        index++;
-        continue;
-      }
-
-      interpolatedAnswers.push(null)
-    }
-    
-    return interpolatedAnswers;
   }
   
   public get isInGame() {
