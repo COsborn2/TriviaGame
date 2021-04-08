@@ -32,7 +32,9 @@
         v-if="this.isInGame">
         <v-row>
           <v-col align-self="center" align="center">
-            <v-btn @click="this.hostButton" v-if="!hostPresent || isCurrentHost" color="red">{{ hostPresent ? 'Click to leave as host' : 'Click here to host' }}</v-btn>
+            <v-btn @click="this.hostButton" v-if="!hostPresent || isCurrentHost" color="red">
+              {{ hostPresent ? 'Click to leave as host' : 'Click here to host' }}
+            </v-btn>
             <h1 align="center">{{ !hostPresent ? 'No Host' : currentGameSession.hostId }}</h1>
           </v-col>
         </v-row>
@@ -46,42 +48,46 @@
         max-width="800"
         tile
         v-if="this.isInGame">
-        <h1 align="center">{{ currentGameSession.triviaBoard.totalPoints }}</h1>
-        <!-- TODO: Split this into two side-by-side tables - bug with 4 answers going to and from host -->
-        <v-simple-table class="disable-hover-white">
-          <thead>
-          <tr>
-            <th colspan="4">
-              <h1 align="center">{{ currentGameSession.triviaBoard.question }}</h1>
-            </th>
-          </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, index) in this.boardRows" :key="'table' + index">
-              <!-- Left Side -->
-              <template v-if="item.leftSide">
-                <td style="border-right: solid 1px; width: 25%">{{ item.leftSide.answer }}</td>
-                <td class="text-center" style="border-right: solid 5px; width: 10%">{{ item.leftSide.points }}</td>
-              </template>
-              <template v-else>
-                <td align="center" colspan="2" style="border-right: solid 5px; width: 35%; background-color: cornflowerblue">
-                  <v-chip v-if="index < currentGameSession.totalAnswers">{{ index + 1 }}</v-chip>
-                </td>
-              </template>
-              
-              <!-- Right Side -->
-              <template v-if="item.rightSide">
-                <td style="border-right: solid 1px; width: 25%">{{ item.rightSide.answer }}</td>
-                <td class="text-center" style="width: 10%">{{ item.rightSide.points }}</td>
-              </template>
-              <template v-else>
-                <td align="center" colspan="2" style="width: 35%; background-color: cornflowerblue">
-                  <v-chip v-if="index + 4 < currentGameSession.totalAnswers">{{ index + 1 + 4 }}</v-chip>
-                </td>
-              </template>
-            </tr>
-          </tbody>
-        </v-simple-table>
+        <h1 align="center" style="font-size: xxx-large">{{ pointsOnBoard }}</h1>
+        <h2 align="center">{{ currentGameSession.triviaBoard.question }}</h2>
+        <v-row>
+          <v-col cols="6" class="pr-0">
+            <v-simple-table>
+              <tbody>
+              <tr v-for="(item, index) in interpolatedTriviaAnswers.slice(0, 4)" :key="'leftTable' + index">
+                <!-- Left Side -->
+                <template v-if="item">
+                  <td style="border-right: solid 1px">{{ item.answer }}</td>
+                  <td class="text-center" style="border-right: solid 3px; width: 10%">{{ item.points }}</td>
+                </template>
+                <template v-else>
+                  <td align="center" colspan="2" style="border-right: solid 3px;background-color: cornflowerblue">
+                    <v-chip v-if="index < currentGameSession.totalAnswers">{{ index + 1 }}</v-chip>
+                  </td>
+                </template>
+              </tr>
+              </tbody>
+            </v-simple-table>
+          </v-col>
+          <v-col cols="6" class="pl-0">
+            <v-simple-table>
+              <tbody>
+              <tr v-for="(item, index) in interpolatedTriviaAnswers.slice(4, 8)" :key="'leftTable' + index">
+                <!-- Left Side -->
+                <template v-if="item">
+                  <td style="border-left: solid 3px; border-right: solid 1px">{{ item.answer }}</td>
+                  <td class="text-center" style="width: 10%">{{ item.points }}</td>
+                </template>
+                <template v-else>
+                  <td align="center" colspan="2" style="border-left: solid 3px;background-color: cornflowerblue">
+                    <v-chip v-if="index + 4 < currentGameSession.totalAnswers">{{ index + 4 + 1 }}</v-chip>
+                  </td>
+                </template>
+              </tr>
+              </tbody>
+            </v-simple-table>
+          </v-col>
+        </v-row>
       </v-card>
     </template>
 
@@ -130,6 +136,11 @@ export default class Home extends Vue {
   public userInput: string = "";
   public currentGameSession!: GameSessionInfo;
   
+  public get pointsOnBoard(): number {
+    if (!this.triviaAnswers || this.triviaAnswers.length < 1) return 0;
+    return this.triviaAnswers.map(value => value.points).reduce((a, b) => (a ?? 0) + (b ?? 0)) ?? 0;
+  }
+  
   public get isCurrentHost(): boolean {
     return this.currentGameSession.hostId === this.connection.connectionId;
   }
@@ -142,11 +153,7 @@ export default class Home extends Vue {
     return this.currentGameSession.triviaBoard.answers;
   }
   
-  public get boardRows(): BoardRow[] {
-    let boardRows: BoardRow[] = [];
-    
-    if (!this.triviaAnswers) return boardRows;
-
+  public get interpolatedTriviaAnswers(): (TriviaAnswer | null)[] {
     let sortedRows: TriviaAnswer[] = this.triviaAnswers ?? [];
     // These should already be sorted but I'll leave this in just in case JSON messes with the order
     sortedRows.sort((a, b) => {
@@ -154,33 +161,26 @@ export default class Home extends Vue {
       let right: number = b?.position ?? 0;
       return left - right;
     })
-    
+
     let interpolatedAnswers: (TriviaAnswer | null) [] = [];
-    for (let i = 0, index = 0; i < this.currentGameSession.totalAnswers; i++) {
+    for (let i = 0, index = 0; i < 8; i++) {
       if (index > sortedRows.length - 1) { // out of bounds
         interpolatedAnswers.push(null)
         continue;
       }
-      
+
       let cur: TriviaAnswer = sortedRows[index];
-      
+
       if (cur && cur?.position === i) {
         interpolatedAnswers.push(cur);
         index++;
         continue;
       }
-      
+
       interpolatedAnswers.push(null)
     }
     
-    for (let i = 0, j = 4; i < 4; i++, j++) {
-      let leftSide: TriviaAnswer | null = interpolatedAnswers[i];
-      let rightSide: TriviaAnswer | null = interpolatedAnswers[j];
-
-      boardRows.push({leftSide: leftSide, rightSide: rightSide});
-    }
-     
-    return boardRows;
+    return interpolatedAnswers;
   }
   
   public get isInGame() {
