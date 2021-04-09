@@ -274,7 +274,17 @@ export default class Home extends Vue {
     })
     
     this.connection.on('HostChanged', (host: Player) => {
-      this.currentGameSession.host?.connectionId = host.connectionId;
+      if (!host) {
+        this.currentGameSession.host = null;
+      }
+      
+      if (!this.currentGameSession.host) {
+        this.currentGameSession.host = new Player(host.connectionId, host.team);
+        return;
+      }
+      
+      this.currentGameSession.host.connectionId = host.connectionId;
+      this.currentGameSession.host.team = host.team;
     })
     
     this.connection.on('TriviaAnswersRevealed', (triviaAnswers: TriviaAnswer[]) => {
