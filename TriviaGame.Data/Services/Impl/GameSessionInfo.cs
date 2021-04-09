@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using TriviaGame.Data.Models;
 
 namespace TriviaGame.Data.Services.Impl
@@ -11,17 +12,20 @@ namespace TriviaGame.Data.Services.Impl
             GameId = gameId;
         }
 
-        public GameSessionInfo(string gameId, params string[] connectIds) : this(gameId)
+        public GameSessionInfo(string gameId, params Player[] players) : this(gameId)
         {
-            foreach (var connectId in connectIds)
+            foreach (var player in players)
             {
-                PlayerIds.Add(connectId);
+                PlayerIds.Add(player.ConnectionId, player);
             }
         }
 
         public string GameId { get; set; }
         
-        public HashSet<string> PlayerIds { get; set; } = new();
+        [JsonIgnore]
+        public Dictionary<string, Player> PlayerIds { get; set; } = new();
+
+        public IEnumerable<Player> Players => PlayerIds.Select(x => x.Value);
 
         public TriviaBoard TriviaBoard { get; set; }
 
@@ -33,6 +37,20 @@ namespace TriviaGame.Data.Services.Impl
             set => _totalAnswers = value;
         }
 
-        public string HostId { get; set; }
+        public Player Host { get; set; }
+    }
+
+    public class Player
+    {
+        public string ConnectionId { get; set; }
+
+        public Team Team { get; set; }
+    }
+
+    public enum Team
+    {
+        Unknown = 0,
+        Left = 1,
+        Right = 2
     }
 }

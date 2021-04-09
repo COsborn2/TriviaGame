@@ -1,6 +1,6 @@
 <template>
-  <v-row class="ma-0" style="background: black">
-    <v-col cols="6" class="pr-0">
+  <v-row class="ma-0">
+    <v-col cols="6" class="pa-0">
       <v-simple-table>
         <tbody>
         <tr v-for="(item, index) in interpolatedTriviaAnswers.slice(0, 4)" :key="'leftTable' + index">
@@ -17,7 +17,7 @@
         </tbody>
       </v-simple-table>
     </v-col>
-    <v-col cols="6" class="pl-0">
+    <v-col cols="6" class="pa-0">
       <v-simple-table>
         <tbody>
         <tr v-for="(item, index) in interpolatedTriviaAnswers.slice(4, 8)" :key="'leftTable' + index">

@@ -27,7 +27,12 @@ namespace TriviaGame.Data.Services.Impl
         {
             var connId = Context.ConnectionId;
 
-            var gameSessionInfo = new GameSessionInfo(gameId, connId);
+            var player = new Player
+            {
+                Team = Team.Unknown,
+                ConnectionId = connId
+            };
+            var gameSessionInfo = new GameSessionInfo(gameId, player);
 
             // This is a new game
             if (!SessionInfo.TryGetValue(gameId, out _))
@@ -44,16 +49,16 @@ namespace TriviaGame.Data.Services.Impl
             
             SessionInfo.AddOrUpdate(gameId, gameSessionInfo, (_, info) =>
             {
-                if (!info.PlayerIds.Contains(connId))
+                if (!info.PlayerIds.ContainsKey(connId))
                 {
-                    info.PlayerIds.Add(connId);
+                    info.PlayerIds.Add(connId, player);
                 }
             
                 return info;
             });
 
             gameSessionInfo = SessionInfo[gameId];
-            await Clients.Group(gameId).ConfirmPlayerAdded(gameSessionInfo.PlayerIds.ToList());
+            await Clients.Group(gameId).ConfirmPlayerAdded(player);
 
             return gameSessionInfo;
         }
@@ -66,10 +71,12 @@ namespace TriviaGame.Data.Services.Impl
 
             if (!SessionInfo.TryGetValue(gameId, out var curSessionInfo)) return null;
 
-            if (curSessionInfo.PlayerIds.Contains(connId))
+            if (curSessionInfo.PlayerIds.TryGetValue(connId, out var player))
             {
                 curSessionInfo.PlayerIds.Remove(connId);
                 ConnectionIdMapping.Remove(connId, out _);
+
+                await Clients.Group(gameId).ConfirmPlayerRemoved(player);
             }
                 
             // If game session contains no players, close
@@ -115,18 +122,36 @@ namespace TriviaGame.Data.Services.Impl
             return await RemoveUserFromGroup();
         }
 
+        public async Task PlayerUpdated(Player player)
+        {
+            // If our connectionId doesn't match the one in the player object - stop
+            if (player.ConnectionId != Context.ConnectionId) return;
+            if (!TryGetCurrentGameInfo(out var sessionInfo)) return;
+
+            var connId = Context.ConnectionId;
+            if (sessionInfo.PlayerIds.ContainsKey(connId))
+            {
+                sessionInfo.PlayerIds.Remove(connId);
+                sessionInfo.PlayerIds.Add(connId, player);
+            }
+            
+            if (!SessionInfo.TryUpdate(sessionInfo.GameId, sessionInfo, sessionInfo)) return;
+
+            await Clients.Group(sessionInfo.GameId).PlayerTeamUpdated(player);
+        }
+
         public async Task LeaveHost()
         {
             if (!TryGetCurrentGameId(out var gameId)) return;
             if (!TryGetCurrentGameInfo(out var gameSessionInfo)) return;
             
             // Only continue if current player is host
-            if (gameSessionInfo.HostId != Context.ConnectionId) return;
+            if (gameSessionInfo.Host is null || gameSessionInfo.Host.ConnectionId != Context.ConnectionId) return;
 
-            gameSessionInfo.HostId = null;
-            SessionInfo.TryUpdate(gameId, gameSessionInfo, gameSessionInfo);
+            gameSessionInfo.Host = null;
+            if (!SessionInfo.TryUpdate(gameId, gameSessionInfo, gameSessionInfo)) return;
 
-            await Clients.Group(gameId).HostChanged(string.Empty);
+            await Clients.Group(gameId).HostChanged(null);
         }
 
         public async Task HostGame()
@@ -134,12 +159,14 @@ namespace TriviaGame.Data.Services.Impl
             if (!TryGetCurrentGameId(out var gameId)) return;
             if (!TryGetCurrentGameInfo(out var gameSessionInfo)) return;
 
-            if (!string.IsNullOrWhiteSpace(gameSessionInfo.HostId)) return;
+            if (gameSessionInfo.Host is not null) return;
+
+            if (!gameSessionInfo.PlayerIds.TryGetValue(Context.ConnectionId, out var player)) return;
             
-            gameSessionInfo.HostId = Context.ConnectionId;
+            gameSessionInfo.Host = player;
             SessionInfo.TryUpdate(gameId, gameSessionInfo, gameSessionInfo);
 
-            await Clients.Group(gameId).HostChanged(Context.ConnectionId);
+            await Clients.Group(gameId).HostChanged(player);
 
             var answers = _triviaService
                 .GetTriviaBoardOfId(gameSessionInfo.TriviaBoard.TriviaBoardId)
@@ -149,11 +176,17 @@ namespace TriviaGame.Data.Services.Impl
         
         public override async Task OnDisconnectedAsync(Exception exception)
         {
+            Player player = null;
+            if (TryGetCurrentGameInfo(out var session))
+            {
+                session.PlayerIds.TryGetValue(Context.ConnectionId, out player);
+            }
+            
             var sessionInfo = await LeaveGame();
 
-            if (sessionInfo is not null)
+            if (sessionInfo is not null && player is not null)
             {
-                await Clients.Group(sessionInfo.GameId).ConfirmPlayerRemoved(sessionInfo.PlayerIds.ToList());
+                await Clients.Group(sessionInfo.GameId).ConfirmPlayerRemoved(player);
             }
 
             await base.OnDisconnectedAsync(exception);
