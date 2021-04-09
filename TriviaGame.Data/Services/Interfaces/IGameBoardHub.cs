@@ -7,13 +7,15 @@ namespace TriviaGame.Data.Services.Interfaces
 {
     public interface IGameBoardHub
     {
-        Task ConfirmPlayerAdded(List<string> currentUserIds);
+        Task ConfirmPlayerAdded(Player player);
 
-        Task ConfirmPlayerRemoved(List<string> currentUserIds);
+        Task ConfirmPlayerRemoved(Player player);
+
+        Task PlayerTeamUpdated(Player player);
 
         Task ReceiveGameInformation(GameSessionInfo gameSessionInfo);
 
-        Task HostChanged(string hostId);
+        Task HostChanged(Player hostId);
 
         Task TriviaAnswersRevealed(ICollection<TriviaAnswer> answers);
     }
