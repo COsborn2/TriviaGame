@@ -51,7 +51,7 @@ steps:
     customCommand: 'run-script build'
 
 - task: DotNetCoreCLI@2
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'dotnet publish'
   inputs:
     command: 'publish'
@@ -59,7 +59,7 @@ steps:
     arguments: '--configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory)'
 
 - task: PublishBuildArtifacts@1
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   displayName: 'publish artifact'
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
