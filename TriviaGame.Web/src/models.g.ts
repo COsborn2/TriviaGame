@@ -1,6 +1,13 @@
 import * as metadata from './metadata.g'
 import { Model, DataSource, convertToModel, mapToModel } from 'coalesce-vue/lib/model'
 
+export enum Team {
+  Unknown = 0,
+  One = 1,
+  Two = 2,
+}
+
+
 export interface TriviaBoard extends Model<typeof metadata.TriviaBoard> {
   triviaBoardId: number | null
   question: string | null
@@ -32,6 +39,7 @@ export interface TriviaAnswer extends Model<typeof metadata.TriviaAnswer> {
   points: number | null
   triviaBoard: TriviaBoard | null
   position: number | null
+  wonBy: Team | null
 }
 export class TriviaAnswer {
   

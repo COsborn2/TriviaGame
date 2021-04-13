@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using IntelliTect.Coalesce.DataAnnotations;
+using TriviaGame.Data.Services.Impl;
 
 namespace TriviaGame.Data.Models
 {
@@ -19,8 +20,11 @@ namespace TriviaGame.Data.Models
 
         [JsonIgnore]
         public TriviaBoard TriviaBoard { get; set; }
-        
+
         [NotMapped]
         public int Position { get; set; }
+
+        [NotMapped]
+        public Team WonBy { get; set; }
     }
 }

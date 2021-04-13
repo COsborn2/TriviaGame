@@ -6,6 +6,16 @@ import {
 
 
 const domain: Domain = { enums: {}, types: {}, services: {} }
+export const Team = domain.enums.Team = {
+  name: "Team",
+  displayName: "Team",
+  type: "enum",
+  ...getEnumMeta<"Unknown"|"One"|"Two">([
+    { value: 0, strValue: 'Unknown', displayName: 'Unknown' },
+    { value: 1, strValue: 'One', displayName: 'One' },
+    { value: 2, strValue: 'Two', displayName: 'Two' },
+  ]),
+}
 export const TriviaBoard = domain.types.TriviaBoard = {
   name: "TriviaBoard",
   displayName: "Trivia Board",
@@ -91,6 +101,13 @@ export const TriviaAnswer = domain.types.TriviaAnswer = {
       type: "number",
       role: "value",
     },
+    wonBy: {
+      name: "wonBy",
+      displayName: "Won By",
+      type: "enum",
+      get typeDef() { return domain.enums.Team },
+      role: "value",
+    },
   },
 }
 export const TriviaService = domain.services.TriviaService = {
@@ -155,6 +172,7 @@ export const TriviaService = domain.services.TriviaService = {
 
 interface AppDomain extends Domain {
   enums: {
+    Team: typeof Team
   }
   types: {
     TriviaAnswer: typeof TriviaAnswer

@@ -23,7 +23,7 @@ namespace TriviaGame.Data.Services.Impl
                 .First(x => x.TriviaBoardId == id);
 
             gameBoard.Answers = gameBoard.Answers.OrderByDescending(x => x.Points).ToList();
-            
+
             for (var i = 0; i < gameBoard.Answers.Count; i++)
             {
                 gameBoard.Answers[i].Position = i;
@@ -35,7 +35,7 @@ namespace TriviaGame.Data.Services.Impl
         public TriviaBoard GetRandomTriviaBoard()
         {
             var id = _context.TriviaBoards.GetRandomTriviaBoardId();
-            
+
             return GetBoardWithAnswers(id);
         }
 

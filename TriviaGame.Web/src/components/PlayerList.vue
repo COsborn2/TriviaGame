@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h1>Points: {{ teamPointsTotal }}</h1>
     <v-btn @click="joinTeamButtonClicked" class="primary" v-if="!isInTeam">Join {{ teamName }}</v-btn>
     <v-expansion-panels>
       <v-expansion-panel>
@@ -26,25 +27,28 @@
 </template>
 
 <script lang="ts">
-import {Component, Prop, Vue} from "vue-property-decorator";
-import {Player} from "@/Player";
+import {Component, Prop, Vue} from 'vue-property-decorator';
+import {Player} from '@/Player';
 
 @Component({})
 export default class PlayerList extends Vue {
   @Prop({type: Boolean, required: true})
   public isInTeam!: boolean;
-  
+
   @Prop({type: String, required: true})
   public teamName!: string;
-  
+
   @Prop({type: Array, required: true})
   public players!: Player[];
-  
+
   @Prop({type: String, required: true})
   public connectionId!: string;
-  
+
+  @Prop({type: Number, required: true})
+  public teamPointsTotal!: number;
+
   public joinTeamButtonClicked() {
-    this.$emit('joinTeamClicked')
+    this.$emit('joinTeamClicked');
   }
 }
 </script>

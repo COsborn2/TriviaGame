@@ -1,22 +1,7 @@
 <template>
   <v-app id="vue-app">
-<!--    <v-navigation-drawer v-model="drawer" app clipped>-->
-<!--      <v-list dense>-->
-
-<!--        <v-list-item link to="/">-->
-<!--          <v-list-item-action>-->
-<!--            <v-icon>fas fa-home</v-icon>-->
-<!--          </v-list-item-action>-->
-<!--          <v-list-item-content>-->
-<!--            <v-list-item-title>Home</v-list-item-title>-->
-<!--          </v-list-item-content>-->
-<!--        </v-list-item>-->
-
-<!--      </v-list>-->
-<!--    </v-navigation-drawer>-->
 
     <v-app-bar app color="primary" dark clipped-left>
-<!--      <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>-->
       <v-toolbar-title>
         <router-link to="/" class="white--text" style="text-decoration: none">
           Trivia Game
@@ -39,38 +24,38 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { Component } from "vue-property-decorator";
+import Vue from 'vue';
+import { Component } from 'vue-property-decorator';
 
 @Component({
-  components: {}
+  components: {},
 })
 export default class App extends Vue {
-  drawer: boolean | null = null;
-  routeComponent: Vue | null = null;
+  public drawer: boolean | null = null;
+  public routeComponent: Vue | null = null;
 
   get routeMeta() {
-    if (!this.$route || this.$route.name === null) return null;
+    if (!this.$route || this.$route.name === null) { return null; }
 
     return this.$route.meta;
   }
 
-  routerViewOnEnter() {
+  public routerViewOnEnter() {
     this.routeComponent = this.$refs.routerView as Vue;
   }
 
-  created() {
+  public created() {
     const baseTitle = document.title;
     this.$watch(
       () => (this.routeComponent as any)?.pageTitle,
       (n: string | null | undefined) => {
         if (n) {
-          document.title = n + " - " + baseTitle;
+          document.title = n + ' - ' + baseTitle;
         } else {
           document.title = baseTitle;
         }
       },
-      { immediate: true }
+      { immediate: true },
     );
   }
 }
