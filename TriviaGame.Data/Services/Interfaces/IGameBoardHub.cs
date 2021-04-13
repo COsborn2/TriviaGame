@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using TriviaGame.Data.Models;
 using TriviaGame.Data.Services.Impl;
@@ -17,6 +16,6 @@ namespace TriviaGame.Data.Services.Interfaces
 
         Task HostChanged(Player hostId);
 
-        Task TriviaAnswersRevealed(ICollection<TriviaAnswer> answers);
+        Task TriviaAnswersRevealed(params TriviaAnswer[] answers);
     }
 }

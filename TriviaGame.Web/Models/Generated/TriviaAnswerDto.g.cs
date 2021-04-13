@@ -18,6 +18,7 @@ namespace TriviaGame.Web.Models
         private int? _Points;
         private TriviaGame.Web.Models.TriviaBoardDtoGen _TriviaBoard;
         private int? _Position;
+        private TriviaGame.Data.Services.Impl.Team? _WonBy;
 
         public int? TriviaAnswerId
         {
@@ -44,6 +45,11 @@ namespace TriviaGame.Web.Models
             get => _Position;
             set { _Position = value; Changed(nameof(Position)); }
         }
+        public TriviaGame.Data.Services.Impl.Team? WonBy
+        {
+            get => _WonBy;
+            set { _WonBy = value; Changed(nameof(WonBy)); }
+        }
 
         /// <summary>
         /// Map from the domain object to the properties of the current DTO instance.
@@ -59,6 +65,7 @@ namespace TriviaGame.Web.Models
             this.Answer = obj.Answer;
             this.Points = obj.Points;
             this.Position = obj.Position;
+            this.WonBy = obj.WonBy;
             if (tree == null || tree[nameof(this.TriviaBoard)] != null)
                 this.TriviaBoard = obj.TriviaBoard.MapToDto<TriviaGame.Data.Models.TriviaBoard, TriviaBoardDtoGen>(context, tree?[nameof(this.TriviaBoard)]);
 
@@ -77,6 +84,7 @@ namespace TriviaGame.Web.Models
             if (ShouldMapTo(nameof(Answer))) entity.Answer = Answer;
             if (ShouldMapTo(nameof(Points))) entity.Points = (Points ?? entity.Points);
             if (ShouldMapTo(nameof(Position))) entity.Position = (Position ?? entity.Position);
+            if (ShouldMapTo(nameof(WonBy))) entity.WonBy = (WonBy ?? entity.WonBy);
         }
     }
 }

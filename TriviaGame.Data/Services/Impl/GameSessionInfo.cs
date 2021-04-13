@@ -21,7 +21,7 @@ namespace TriviaGame.Data.Services.Impl
         }
 
         public string GameId { get; set; }
-        
+
         [JsonIgnore]
         public Dictionary<string, Player> PlayerIds { get; set; } = new();
 
@@ -29,13 +29,7 @@ namespace TriviaGame.Data.Services.Impl
 
         public TriviaBoard TriviaBoard { get; set; }
 
-        private int _totalAnswers;
-
-        public int TotalAnswers
-        {
-            get => TriviaBoard.Answers.Any() ? TriviaBoard.Answers.Count : _totalAnswers;
-            set => _totalAnswers = value;
-        }
+        public int TotalAnswers { get; set; }
 
         public Player Host { get; set; }
     }
@@ -50,7 +44,7 @@ namespace TriviaGame.Data.Services.Impl
     public enum Team
     {
         Unknown = 0,
-        Left = 1,
-        Right = 2
+        One = 1,
+        Two = 2
     }
 }

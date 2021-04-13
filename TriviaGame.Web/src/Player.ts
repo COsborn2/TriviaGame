@@ -1,15 +1,15 @@
 export class Player {
+
+  public connectionId: string;
+  public team: Team;
   constructor(connectionId: string, team: Team) {
     this.connectionId = connectionId;
     this.team = team;
   }
-
-  connectionId: string;
-  team: Team;
 }
 
 export enum Team {
   Unknown = 0,
-  Left = 1,
-  Right = 2
+  One = 1,
+  Two = 2,
 }

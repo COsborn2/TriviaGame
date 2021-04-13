@@ -10,7 +10,7 @@ import { CAdminTablePage, CAdminEditorPage } from 'coalesce-vue-vuetify';
 Vue.use(Router);
 
 export default new Router({
-  mode: "history",
+  mode: 'history',
   routes: [
     {
       path: '/',
