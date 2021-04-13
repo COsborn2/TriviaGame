@@ -302,7 +302,7 @@ export default class Home extends Vue {
           idToIndex[cur.triviaAnswerId] = i;
         }
 
-        for (let item of triviaAnswers) {
+        for (const item of triviaAnswers) {
           if (!item.triviaAnswerId) { continue; }
 
           const index = idToIndex[item.triviaAnswerId];
@@ -324,7 +324,7 @@ export default class Home extends Vue {
         return;
       }
 
-      for (let cur of triviaAnswers) {
+      for (const cur of triviaAnswers) {
         if (!cur.triviaAnswerId) { continue; }
 
         // if we don't already have this id
