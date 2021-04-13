@@ -6,7 +6,7 @@
         <template v-if="triviaAnswer">
           <td :class="'thin-right-border ' + (isRight ? 'thick-left-border' : '')" style="width: 90%"
               v-if="!active || !isHost">
-            {{ triviaAnswer.answer }} {{ triviaAnswer.wonBy }}
+            {{ triviaAnswer.answer }}
           </td>
           <td :class="'text-center ' + (isLeft && !isHost ? 'thick-right-border' : '')" style="width: 10%"
               v-if="!active || !isHost">

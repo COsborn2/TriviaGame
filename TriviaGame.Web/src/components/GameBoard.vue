@@ -54,8 +54,6 @@ export default class GameBoard extends Vue {
     return this.interpolatedTriviaAnswers.slice(4, 8);
   }
 
-  public show: boolean = false;
-
   public awardPointsToNoTeam(answer: TriviaAnswer) {
     this.awardPointsForAnswer(answer, Team.Unknown);
   }
