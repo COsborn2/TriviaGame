@@ -136,7 +136,8 @@ export default class Home extends Vue {
   }
 
   public get isInAnyTeam(): boolean {
-    return this.connectionIdExists(this.currentGameSession.teamOnePlayers) || this.existsFunc(this.currentGameSession.teamTwoPlayers);
+    return this.connectionIdExists(this.currentGameSession.teamOnePlayers) ||
+      this.existsFunc(this.currentGameSession.teamTwoPlayers);
   }
 
   public get pointsOnBoard(): number {
@@ -227,9 +228,7 @@ export default class Home extends Vue {
   }
 
   public joinGame() {
-    this.connection.invoke('JoinGame', this.userInput).catch((err) => {
-      console.log(err);
-    });
+    this.connection.invoke('JoinGame', this.userInput);
   }
 
   public async disconnect() {
@@ -303,27 +302,29 @@ export default class Home extends Vue {
           idToIndex[cur.triviaAnswerId] = i;
         }
 
-        for (let i = 0; i < triviaAnswers.length; i++) {
-          const cur = triviaAnswers[i];
-          if (!cur.triviaAnswerId) { continue; }
+        for (let item of triviaAnswers) {
+          if (!item.triviaAnswerId) { continue; }
 
-          const index = idToIndex[cur.triviaAnswerId];
+          const index = idToIndex[item.triviaAnswerId];
           if (index !== undefined && index !== null) {
-            this.currentGameSession.triviaBoard.answers[index].wonBy = cur.wonBy;
+            this.currentGameSession.triviaBoard.answers[index].wonBy = item.wonBy;
           }
         }
       }
 
       // Don't update array if host and already have all of the answers for the board
-      if (this.isCurrentHost && this.currentGameSession.triviaBoard.answers?.length === this.currentGameSession.totalAnswers) { return; }
+      if (this.isCurrentHost &&
+        this.currentGameSession.triviaBoard.answers?.length ===
+        this.currentGameSession.totalAnswers) {
+        return;
+      }
 
       if (this.isCurrentHost) {
         this.currentGameSession.triviaBoard.answers = triviaAnswers;
         return;
       }
 
-      for (let i = 0; i < triviaAnswers.length; i++) {
-        const cur: TriviaAnswer = triviaAnswers[i];
+      for (let cur of triviaAnswers) {
         if (!cur.triviaAnswerId) { continue; }
 
         // if we don't already have this id
@@ -333,8 +334,7 @@ export default class Home extends Vue {
       }
     });
 
-    this.connection.start()
-      .catch((err) => console.log(err));
+    this.connection.start();
   }
 }
 </script>
