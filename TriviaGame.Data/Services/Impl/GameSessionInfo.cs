@@ -32,6 +32,8 @@ namespace TriviaGame.Data.Services.Impl
         public int TotalAnswers { get; set; }
 
         public Player Host { get; set; }
+
+        public bool BuzzersEnabled { get; set; }
     }
 
     public class Player
@@ -39,12 +41,15 @@ namespace TriviaGame.Data.Services.Impl
         public string ConnectionId { get; set; }
 
         public Team Team { get; set; }
+
+        public int BuzzerPosition { get; set; }
     }
 
     public enum Team
     {
         Unknown = 0,
-        One = 1,
-        Two = 2
+        NoTeam = 1,
+        One = 2,
+        Two = 3
     }
 }

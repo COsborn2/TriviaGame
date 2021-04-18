@@ -97,6 +97,16 @@ namespace TriviaGame.Data.Services.Impl
             return TryGetCurrentGameId(out var gameId) && SessionInfo.TryGetValue(gameId, out gameSessionInfo);
         }
 
+        private bool TryGetCurrentPlayer(out Player player, GameSessionInfo gameSessionInfo = null)
+        {
+            player = null;
+            if (gameSessionInfo is null && !TryGetCurrentGameInfo(out gameSessionInfo)) return false;
+
+            player = gameSessionInfo.Players.SingleOrDefault(x => x.ConnectionId == Context.ConnectionId);
+
+            return true;
+        }
+
         private bool TryGetCurrentGameId(out string gameId)
         {
             return ConnectionIdMapping.TryGetValue(Context.ConnectionId, out gameId);
@@ -205,6 +215,55 @@ namespace TriviaGame.Data.Services.Impl
             SessionInfo.TryUpdate(gameSessionInfo.GameId, gameSessionInfo, gameSessionInfo);
 
             await Clients.Group(gameSessionInfo.GameId).TriviaAnswersRevealed(answer);
+        }
+
+        public async Task ChangeBuzzerState(bool newState)
+        {
+            if (!TryGetCurrentGameInfo(out var gameSessionInfo)) return;
+
+            // Make sure caller is host
+            if (gameSessionInfo.Host.ConnectionId != Context.ConnectionId) return;
+
+            gameSessionInfo.BuzzersEnabled = newState;
+
+            SessionInfo.TryUpdate(gameSessionInfo.GameId, gameSessionInfo, gameSessionInfo);
+
+            await Clients.Group(gameSessionInfo.GameId).BuzzerStateChanged(newState);
+        }
+
+        public async Task BuzzerPressed()
+        {
+            if (!TryGetCurrentGameInfo(out var gameSessionInfo)) return;
+
+            if (!gameSessionInfo.BuzzersEnabled) return;
+
+            if (!TryGetCurrentPlayer(out var player, gameSessionInfo)) return;
+
+            if (player.BuzzerPosition > 0) return;
+
+            var lastBuzzerPosition = gameSessionInfo.Players.Max(x => x.BuzzerPosition);
+            player.BuzzerPosition = lastBuzzerPosition + 1;
+
+            SessionInfo.TryUpdate(gameSessionInfo.GameId, gameSessionInfo, gameSessionInfo);
+
+            await Clients.Group(gameSessionInfo.GameId)
+                .ConfirmBuzzerPressReceived(player.ConnectionId, player.BuzzerPosition);
+        }
+
+        public async Task ClearOldBuzzerPositions()
+        {
+            if (!TryGetCurrentGameInfo(out var gameSessionInfo)) return;
+
+            if (gameSessionInfo.Host?.ConnectionId != Context.ConnectionId) return;
+
+            foreach (var player in gameSessionInfo.Players)
+            {
+                player.BuzzerPosition = 0;
+            }
+
+            SessionInfo.TryUpdate(gameSessionInfo.GameId, gameSessionInfo, gameSessionInfo);
+
+            await Clients.Group(gameSessionInfo.GameId).ClearOldBuzzerPositions();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)

@@ -11,6 +11,7 @@ import '@/site.scss';
 
 // SETUP: vuetify
 import Vuetify from 'vuetify';
+import colors from 'vuetify/lib/util/colors';
 Vue.use(Vuetify);
 const vuetify = new Vuetify({
   icons: {
@@ -26,7 +27,10 @@ const vuetify = new Vuetify({
         // primary: "#9ccc6f",
         // secondary: "#4d97bc",
         // accent: "#e98f07",
-        error: '#df323b', // This is the default error color with darken-1
+        error: '#df323b', // This is the default error color with darken-1,
+        teamOne: colors.purple.base,
+        teamTwo: colors.green.base,
+        noTeam: colors.orange.base,
       },
     },
   },

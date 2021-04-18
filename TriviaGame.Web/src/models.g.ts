@@ -3,8 +3,9 @@ import { Model, DataSource, convertToModel, mapToModel } from 'coalesce-vue/lib/
 
 export enum Team {
   Unknown = 0,
-  One = 1,
-  Two = 2,
+  NoTeam = 1,
+  One = 2,
+  Two = 3,
 }
 
 
