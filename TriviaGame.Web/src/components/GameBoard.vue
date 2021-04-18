@@ -55,7 +55,7 @@ export default class GameBoard extends Vue {
   }
 
   public awardPointsToNoTeam(answer: TriviaAnswer) {
-    this.awardPointsForAnswer(answer, Team.Unknown);
+    this.awardPointsForAnswer(answer, Team.NoTeam);
   }
 
   public awardPointsToTeamOne(answer: TriviaAnswer) {

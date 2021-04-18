@@ -1,5 +1,5 @@
-import {TriviaAnswer, TriviaBoard} from '@/models.g';
-import {Player, Team} from '@/Player';
+import {Team, TriviaAnswer, TriviaBoard} from '@/models.g';
+import {Player} from '@/Player';
 
 export class GameSessionInfo {
 
@@ -33,6 +33,8 @@ export class GameSessionInfo {
 
   public totalAnswers: number;
 
+  public buzzersEnabled: boolean;
+
   public host: Player | null;
   constructor() {
     this.gameId = null;
@@ -40,5 +42,6 @@ export class GameSessionInfo {
     this.triviaBoard = new TriviaBoard();
     this.totalAnswers = 0;
     this.host = null;
+    this.buzzersEnabled = false;
   }
 }

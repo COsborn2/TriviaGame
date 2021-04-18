@@ -10,10 +10,11 @@ export const Team = domain.enums.Team = {
   name: "Team",
   displayName: "Team",
   type: "enum",
-  ...getEnumMeta<"Unknown"|"One"|"Two">([
+  ...getEnumMeta<"Unknown"|"NoTeam"|"One"|"Two">([
     { value: 0, strValue: 'Unknown', displayName: 'Unknown' },
-    { value: 1, strValue: 'One', displayName: 'One' },
-    { value: 2, strValue: 'Two', displayName: 'Two' },
+    { value: 1, strValue: 'NoTeam', displayName: 'No Team' },
+    { value: 2, strValue: 'One', displayName: 'One' },
+    { value: 3, strValue: 'Two', displayName: 'Two' },
   ]),
 }
 export const TriviaBoard = domain.types.TriviaBoard = {

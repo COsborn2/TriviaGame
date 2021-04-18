@@ -16,7 +16,7 @@
               {{ this.connection.connectionId }}
             </v-col>
             <v-col cols="12" lg="1" align="center" align-self="center">
-              <v-btn class="mr-3" color="red" @click="this.disconnect">Disconnect</v-btn>
+              <v-btn class="mr-3" color="error" @click="this.disconnect">Disconnect</v-btn>
             </v-col>
           </v-row>
         </v-card>
@@ -26,12 +26,12 @@
     <template>
       <v-card
         class="mx-auto mt-5"
-        max-width="800"
+        max-width="800px"
         tile
         v-if="this.isInGame">
         <v-row>
           <v-col align-self="center" align="center">
-            <v-btn @click="this.hostButton" v-if="!hostPresent || isCurrentHost" color="red">
+            <v-btn @click="this.hostButton" v-if="!hostPresent || isCurrentHost" color="error">
               {{ hostPresent ? 'Click to leave as host' : 'Click here to host' }}
             </v-btn>
             <h1 align="center">{{ !hostPresent ? 'No Host' : currentGameSession.host.connectionId }}</h1>
@@ -40,10 +40,44 @@
       </v-card>
     </template>
 
+    <template v-if="isInGame && !isCurrentHost && isInAnyTeam">
+      <v-expand-transition>
+        <v-row>
+          <v-col align="center" align-self="center">
+            <v-btn @click="buzzerClicked" color="primary" style="width: 100%; max-width: 800px" :disabled="!currentGameSession.buzzersEnabled || buzzedIn" x-large rounded>
+              Buzz In
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-expand-transition>
+    </template>
+
+    <template v-if="isInGame && isCurrentHost">
+      <v-expand-transition>
+        <v-card
+          class="mx-auto"
+          max-width="800px"
+          tile>
+          <v-row justify="space-around">
+            <v-col align="center" cols="12" lg="4">
+              <v-btn @click="buzzerStateToggle" :color="currentGameSession.buzzersEnabled ? 'error' : 'success'">
+                {{ currentGameSession.buzzersEnabled ? 'Disable Buzzers' : 'Enable Buzzers' }}
+              </v-btn>
+            </v-col>
+            <v-col align="center" cols="12" lg="4">
+              <v-btn @click="clearBuzzerPositions" color="error">
+                Clear Buzzer Positions
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-expand-transition>
+    </template>
+
     <template>
       <v-card
-        class="mx-auto mt-5"
-        max-width="800"
+        class="mx-auto"
+        max-width="800px"
         tile
         v-if="this.isInGame">
         <v-row>
@@ -58,6 +92,8 @@
                          :is-in-team="isInAnyTeam"
                          :players="currentGameSession.teamOnePlayers"
                          :connection-id="connection.connectionId"
+                         color="teamOne"
+                         expansion-header-class="team-one-background"
                          team-name="Team One" />
           </v-col>
           <v-col cols="12" lg="6" align="center">
@@ -66,6 +102,8 @@
                          :is-in-team="isInAnyTeam"
                          :players="currentGameSession.teamTwoPlayers"
                          :connection-id="connection.connectionId"
+                         color="teamTwo"
+                         expansion-header-class="team-two-background"
                          team-name="Team Two" />
           </v-col>
         </v-row>
@@ -116,9 +154,9 @@
 import {Component, Vue} from 'vue-property-decorator';
 import {HubConnection, HubConnectionBuilder} from '@microsoft/signalr';
 import {GameSessionInfo} from '@/GameSessionInfo';
-import {TriviaAnswer} from '@/models.g';
+import {Team, TriviaAnswer} from '@/models.g';
 import GameBoard from '@/components/GameBoard.vue';
-import {Player, Team} from '@/Player';
+import {Player} from '@/Player';
 import PlayerList from '@/components/PlayerList.vue';
 
 @Component({
@@ -128,6 +166,19 @@ import PlayerList from '@/components/PlayerList.vue';
   },
 })
 export default class Home extends Vue {
+  private buzzedIn: boolean = false;
+
+  public clearBuzzerPositions() {
+    this.connection.invoke('ClearOldBuzzerPositions');
+  }
+
+  public buzzerStateToggle() {
+    this.connection.invoke('ChangeBuzzerState', !this.currentGameSession.buzzersEnabled);
+  }
+
+  public buzzerClicked() {
+    this.connection.invoke('BuzzerPressed');
+  }
 
   public get currentPlayer(): Player {
     const filteredList = this.currentGameSession.players.filter(this.searchFunction);
@@ -137,7 +188,7 @@ export default class Home extends Vue {
 
   public get isInAnyTeam(): boolean {
     return this.connectionIdExists(this.currentGameSession.teamOnePlayers) ||
-      this.existsFunc(this.currentGameSession.teamTwoPlayers);
+      this.connectionIdExists(this.currentGameSession.teamTwoPlayers);
   }
 
   public get pointsOnBoard(): number {
@@ -267,11 +318,17 @@ export default class Home extends Vue {
     });
 
     this.connection.on('ReceiveGameInformation', (sessionInfo: GameSessionInfo) => {
+      // question not yet revealed or new game board
+      if (!this.currentGameSession.triviaBoard.question || this.currentGameSession.triviaBoard.question !== sessionInfo.triviaBoard.question) {
+        this.buzzedIn = false;
+      }
+
       this.currentGameSession.gameId = sessionInfo.gameId;
       this.currentGameSession.players = sessionInfo.players;
       this.currentGameSession.triviaBoard = sessionInfo.triviaBoard;
       this.currentGameSession.totalAnswers = sessionInfo.totalAnswers;
       this.currentGameSession.host = sessionInfo.host;
+      this.currentGameSession.buzzersEnabled = sessionInfo.buzzersEnabled;
     });
 
     this.connection.on('HostChanged', (host: Player) => {
@@ -334,7 +391,43 @@ export default class Home extends Vue {
       }
     });
 
+    this.connection.on('BuzzerStateChanged', (buzzerState: boolean) => {
+      this.currentGameSession.buzzersEnabled = buzzerState;
+      this.buzzedIn = false;
+    });
+
+    this.connection.on('ConfirmBuzzerPressReceived', (connectionId: string, buzzerPosition: number) => {
+      if (this.connection.connectionId === connectionId) {
+        this.buzzedIn = true;
+      }
+
+      let indexToUpdate = -1;
+
+      for (let i = 0; i < this.currentGameSession.players.length; i++) {
+        let cur = this.currentGameSession.players[i];
+
+        if (cur.connectionId === connectionId) {
+          indexToUpdate = i;
+        }
+      }
+
+      if (indexToUpdate < 0) return;
+
+      this.currentGameSession.players[indexToUpdate].buzzerPosition = buzzerPosition;
+    });
+
+    this.connection.on('ClearOldBuzzerPositions', () => {
+      // if going from disabled to enabled - clear old
+      for (const player of this.currentGameSession.players) {
+        player.buzzerPosition = null;
+      }
+
+      this.buzzedIn = false;
+    })
+
     this.connection.start();
+
+    this.connection.keepAliveIntervalInMilliseconds = 5000;
   }
 }
 </script>

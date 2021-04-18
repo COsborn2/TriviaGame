@@ -17,5 +17,11 @@ namespace TriviaGame.Data.Services.Interfaces
         Task HostChanged(Player hostId);
 
         Task TriviaAnswersRevealed(params TriviaAnswer[] answers);
+
+        Task BuzzerStateChanged(bool newState);
+
+        Task ConfirmBuzzerPressReceived(string connectionId, int buzzerPosition);
+
+        Task ClearOldBuzzerPositions();
     }
 }

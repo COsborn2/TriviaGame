@@ -1,10 +1,10 @@
 <template>
   <div>
     <h1>Points: {{ teamPointsTotal }}</h1>
-    <v-btn @click="joinTeamButtonClicked" class="primary" v-if="!isInTeam">Join {{ teamName }}</v-btn>
+    <v-btn @click="joinTeamButtonClicked" class="primary mb-1" :color="color" v-if="!isInTeam">Join {{ teamName }}</v-btn>
     <v-expansion-panels>
       <v-expansion-panel>
-        <v-expansion-panel-header>
+        <v-expansion-panel-header :class="expansionHeaderClass + ' white--text'">
           <v-row class="ma-0 pa-0" no-gutters>
             <v-col align="center">{{ teamName }}</v-col>
             <v-col align="center" vertical><v-divider vertical/></v-col>
@@ -12,11 +12,16 @@
           </v-row>
         </v-expansion-panel-header>
         <v-expansion-panel-content>
-          <v-simple-table>
+          <v-simple-table class="mt-2">
             <tr v-for="player in players">
               <td>
                 <v-icon v-if="player.connectionId === connectionId">fas fa-user</v-icon>
+              </td>
+              <td align="center" style="width: 100%">
                 {{ player.connectionId }}
+              </td>
+              <td>
+                <v-chip v-if="player.buzzerPosition && player.buzzerPosition > 0">{{ player.buzzerPosition }}</v-chip>
               </td>
             </tr>
           </v-simple-table>
@@ -47,6 +52,12 @@ export default class PlayerList extends Vue {
   @Prop({type: Number, required: true})
   public teamPointsTotal!: number;
 
+  @Prop({type: String, required: true})
+  public color!: string;
+
+  @Prop({type: String, required: true})
+  public expansionHeaderClass!: string;
+
   public joinTeamButtonClicked() {
     this.$emit('joinTeamClicked');
   }
@@ -54,5 +65,4 @@ export default class PlayerList extends Vue {
 </script>
 
 <style lang="scss" scoped>
-
 </style>
