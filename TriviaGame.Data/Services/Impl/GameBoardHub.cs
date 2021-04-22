@@ -191,7 +191,6 @@ namespace TriviaGame.Data.Services.Impl
                 return guessedTriviaAnswer ?? x;
             });
 
-            // TODO: Don't blindly replace all the answers here, only the ones that aren't already known
             sessionToSendToHost.TriviaBoard.Answers = answers.ToList();
             sessionToSendToHost.TriviaBoard.Question = board.Question;
 
