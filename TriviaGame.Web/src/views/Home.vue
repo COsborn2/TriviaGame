@@ -92,6 +92,7 @@
                          :is-in-team="isInAnyTeam"
                          :players="currentGameSession.teamOnePlayers"
                          :connection-id="connection.connectionId"
+                         :host-connection-id="hostConnectionId"
                          color="teamOne"
                          expansion-header-class="team-one-background"
                          team-name="Team One" />
@@ -102,6 +103,7 @@
                          :is-in-team="isInAnyTeam"
                          :players="currentGameSession.teamTwoPlayers"
                          :connection-id="connection.connectionId"
+                         :host-connection-id="hostConnectionId"
                          color="teamTwo"
                          expansion-header-class="team-two-background"
                          team-name="Team Two" />
@@ -118,6 +120,11 @@
         v-if="this.isInGame">
         <h1 align="center" style="font-size: xxx-large">{{ pointsOnBoard }}</h1>
         <h2 align="center">{{ currentGameSession.triviaBoard.question }}</h2>
+        <v-row v-if="isCurrentHost && !alreadyRevealedQuestion">
+          <v-col align="center">
+            <v-btn @click="revealQuestion" align-self="center" class="primary">Reveal Question</v-btn>
+          </v-col>
+        </v-row>
 
         <game-board @awardPointsForAnswer="awardPointsForAnswer" :is-host="isCurrentHost" :total-answers-in-board="currentGameSession.totalAnswers" :trivia-answers="triviaAnswers" />
       </v-card>
@@ -167,6 +174,16 @@ import PlayerList from '@/components/PlayerList.vue';
 })
 export default class Home extends Vue {
   private buzzedIn: boolean = false;
+  private alreadyRevealedQuestion: boolean = false;
+
+  public get hostConnectionId(): string | null {
+    return this.currentGameSession.host?.connectionId ?? null;
+  }
+
+  public revealQuestion() {
+    this.connection.invoke('RevealGameQuestion')
+    this.alreadyRevealedQuestion = true;
+  }
 
   public clearBuzzerPositions() {
     this.connection.invoke('ClearOldBuzzerPositions');
@@ -268,8 +285,11 @@ export default class Home extends Vue {
     if (this.isCurrentHost) {
       // leaving as host
       await this.connection.invoke('LeaveHost');
+      this.alreadyRevealedQuestion = false;
     } else {
       // joining as host
+      this.alreadyRevealedQuestion = !!this.currentGameSession.triviaBoard.question;
+
       await this.connection.invoke('HostGame');
     }
   }
@@ -321,6 +341,7 @@ export default class Home extends Vue {
       // question not yet revealed or new game board
       if (!this.currentGameSession.triviaBoard.question || this.currentGameSession.triviaBoard.question !== sessionInfo.triviaBoard.question) {
         this.buzzedIn = false;
+        this.alreadyRevealedQuestion = false;
       }
 
       this.currentGameSession.gameId = sessionInfo.gameId;
