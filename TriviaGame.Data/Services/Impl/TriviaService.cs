@@ -47,6 +47,7 @@ namespace TriviaGame.Data.Services.Impl
                 .First(x => x.TriviaBoardId == id);
             var answerCount = board.Answers.Count;
             board.Answers = new List<TriviaAnswer>();
+            board.Question = null;
 
             return (board, answerCount);
         }

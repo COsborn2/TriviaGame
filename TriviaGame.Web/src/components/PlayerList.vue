@@ -16,6 +16,7 @@
             <tr v-for="player in players">
               <td>
                 <v-icon v-if="player.connectionId === connectionId">fas fa-user</v-icon>
+                <v-icon v-else-if="!!hostConnectionId && player.connectionId === hostConnectionId">fas fa-bullhorn</v-icon>
               </td>
               <td align="center" style="width: 100%">
                 {{ player.connectionId }}
@@ -57,6 +58,9 @@ export default class PlayerList extends Vue {
 
   @Prop({type: String, required: true})
   public expansionHeaderClass!: string;
+
+  @Prop({required: true})
+  public hostConnectionId!: string | null;
 
   public joinTeamButtonClicked() {
     this.$emit('joinTeamClicked');
