@@ -285,7 +285,7 @@ namespace TriviaGame.Data.Services.Impl
 
             SessionInfo.TryUpdate(gameSessionInfo.GameId, gameSessionInfo, gameSessionInfo);
 
-            await Clients.Group(gameSessionInfo.GameId).ReceiveGameInformation(gameSessionInfo);
+            await Clients.OthersInGroup(gameSessionInfo.GameId).ReceiveGameInformation(gameSessionInfo);
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
