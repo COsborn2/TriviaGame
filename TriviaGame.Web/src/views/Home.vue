@@ -65,6 +65,11 @@
               </v-btn>
             </v-col>
             <v-col align="center" cols="12" lg="4">
+              <v-btn @click="newGame" color="secondary">
+                New Game
+              </v-btn>
+            </v-col>
+            <v-col align="center" cols="12" lg="4">
               <v-btn @click="clearBuzzerPositions" color="error">
                 Clear Buzzer Positions
               </v-btn>
@@ -183,6 +188,10 @@ export default class Home extends Vue {
   public revealQuestion() {
     this.connection.invoke('RevealGameQuestion')
     this.alreadyRevealedQuestion = true;
+  }
+
+  public newGame() {
+    this.connection.invoke('NewGame')
   }
 
   public clearBuzzerPositions() {

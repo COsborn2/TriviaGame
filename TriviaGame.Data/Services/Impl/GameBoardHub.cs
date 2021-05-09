@@ -167,6 +167,21 @@ namespace TriviaGame.Data.Services.Impl
             await Clients.Caller.ReceiveGameInformation(gameSessionInfo);
         }
 
+        private async Task SendHostInformationToCaller(GameSessionInfo sessionToSendToHost, TriviaBoard board)
+        {
+            var answers = board.Answers.Select(x =>
+            {
+                var guessedTriviaAnswer = sessionToSendToHost.TriviaBoard.Answers
+                    .SingleOrDefault(xi => xi.TriviaAnswerId == x.TriviaAnswerId);
+                return guessedTriviaAnswer ?? x;
+            });
+
+            sessionToSendToHost.TriviaBoard.Answers = answers.ToList();
+            sessionToSendToHost.TriviaBoard.Question = board.Question;
+
+            await Clients.Caller.ReceiveGameInformation(sessionToSendToHost);
+        }
+
         public async Task HostGame()
         {
             if (!TryGetCurrentGameId(out var gameId)) return;
@@ -179,22 +194,8 @@ namespace TriviaGame.Data.Services.Impl
             gameSessionInfo.Host = player;
             SessionInfo.TryUpdate(gameId, gameSessionInfo, gameSessionInfo);
 
-            var sessionToSendToHost = gameSessionInfo.Copy();
-            await Clients.Group(gameId).HostChanged(player);
-
             var board = _triviaService.GetTriviaBoardOfId(gameSessionInfo.TriviaBoard.TriviaBoardId);
-
-            var answers = board.Answers.Select(x =>
-            {
-                var guessedTriviaAnswer = gameSessionInfo.TriviaBoard.Answers
-                    .SingleOrDefault(xi => xi.TriviaAnswerId == x.TriviaAnswerId);
-                return guessedTriviaAnswer ?? x;
-            });
-
-            sessionToSendToHost.TriviaBoard.Answers = answers.ToList();
-            sessionToSendToHost.TriviaBoard.Question = board.Question;
-
-            await Clients.Caller.ReceiveGameInformation(sessionToSendToHost);
+            await SendHostInformationToCaller(gameSessionInfo.Copy(), board);
         }
 
         public async Task AwardAnswerToTeam(TriviaAnswer answer)
@@ -286,6 +287,32 @@ namespace TriviaGame.Data.Services.Impl
             SessionInfo.TryUpdate(gameSessionInfo.GameId, gameSessionInfo, gameSessionInfo);
 
             await Clients.OthersInGroup(gameSessionInfo.GameId).ReceiveGameInformation(gameSessionInfo);
+        }
+
+        public async Task NewGame()
+        {
+            if (!TryGetCurrentGameInfo(out var gameSessionInfo)) return;
+
+            if (gameSessionInfo.Host.ConnectionId != Context.ConnectionId) return;
+
+            var board = _triviaService.GetRandomTriviaBoard();
+
+            var emptyBoard = board.Copy();
+            emptyBoard.Question = null;
+            emptyBoard.Answers = new List<TriviaAnswer>();
+
+            gameSessionInfo.TriviaBoard = emptyBoard;
+            gameSessionInfo.TotalAnswers = board.Answers.Count;
+            gameSessionInfo.BuzzersEnabled = false;
+
+            foreach (var player in gameSessionInfo.Players)
+            {
+                player.BuzzerPosition = 0;
+            }
+
+            SessionInfo.TryUpdate(gameSessionInfo.GameId, gameSessionInfo, gameSessionInfo);
+            await Clients.OthersInGroup(gameSessionInfo.GameId).ReceiveGameInformation(gameSessionInfo);
+            await SendHostInformationToCaller(gameSessionInfo.Copy(), board);
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
